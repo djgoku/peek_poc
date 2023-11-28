@@ -134,6 +134,22 @@ defmodule PeekPoc.Organizations do
   def get_order!(id), do: Repo.get!(Order, id)
 
   @doc """
+  Gets a single order.
+
+  Raises `Ecto.NoResultsError` if the Order does not exist.
+
+  ## Examples
+
+      iex> get_order(123)
+      %Order{}
+
+      iex> get_order(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_order(id), do: get_order!(id) |> Repo.preload(:payments)
+
+  @doc """
   Creates a order.
 
   ## Examples
