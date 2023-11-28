@@ -22,4 +22,18 @@ defmodule PeekPoc.OrganizationsFixtures do
 
     customer
   end
+
+  @doc """
+  Generate a order.
+  """
+  def order_fixture(attrs \\ %{}) do
+    {:ok, order} =
+      attrs
+      |> Enum.into(%{
+        original_cost: 42
+      })
+      |> PeekPoc.Organizations.create_order()
+
+    order
+  end
 end
