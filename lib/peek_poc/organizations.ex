@@ -150,6 +150,32 @@ defmodule PeekPoc.Organizations do
   def get_order(id), do: get_order!(id) |> Repo.preload(:payments)
 
   @doc """
+  Gets all orders for a customer email.
+
+  Raises `Ecto.NoResultsError` if the Order does not exist.
+
+  ## Examples
+
+      iex> get_orders_for_customer("a@example.com")
+      %Order{}
+
+      iex> get_orders_for_customer("non-existant-customer@example.com")
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_orders_for_customer(email) do
+    query =
+      from(o in Order,
+        join: c in Customer,
+        on: o.customer_id == c.id,
+        where: c.email == ^email,
+        order_by: [desc: o.updated_at]
+      )
+
+    Repo.all(query) |> Repo.preload(:payments)
+  end
+
+  @doc """
   Creates a order.
 
   ## Examples

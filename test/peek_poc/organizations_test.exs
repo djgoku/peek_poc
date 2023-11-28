@@ -92,6 +92,12 @@ defmodule PeekPoc.OrganizationsTest do
       assert Organizations.get_order!(order.id) == order
     end
 
+    test "get_orders_for_customer/1 returns all orders for a given email" do
+      customer = customer_fixture()
+      order = order_fixture(%{customer_id: customer.id}) |> PeekPoc.Repo.preload(:payments)
+      assert Organizations.get_orders_for_customer(customer.email) == [order]
+    end
+
     test "create_order/1 with valid data creates a order" do
       customer = customer_fixture()
       valid_attrs = %{original_cost: 42, customer_id: customer.id}
