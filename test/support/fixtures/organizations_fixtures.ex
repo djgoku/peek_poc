@@ -36,4 +36,19 @@ defmodule PeekPoc.OrganizationsFixtures do
 
     order
   end
+
+  @doc """
+  Generate a payment.
+  """
+  def payment_fixture(attrs \\ %{}) do
+    {:ok, payment} =
+      attrs
+      |> Enum.into(%{
+        amount: 42,
+        client_identifier: "some client_identifier"
+      })
+      |> PeekPoc.Organizations.create_payment()
+
+    payment
+  end
 end
