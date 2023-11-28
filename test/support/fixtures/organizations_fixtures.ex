@@ -34,7 +34,7 @@ defmodule PeekPoc.OrganizationsFixtures do
       })
       |> PeekPoc.Organizations.create_order()
 
-    order
+    order |> PeekPoc.Repo.preload(:payments)
   end
 
   @doc """

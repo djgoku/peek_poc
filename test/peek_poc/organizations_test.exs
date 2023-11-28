@@ -76,25 +76,25 @@ defmodule PeekPoc.OrganizationsTest do
 
     test "list_orders/0 returns all orders" do
       customer = customer_fixture()
-      order = order_fixture(%{customer_id: customer.id})
-      assert Organizations.list_orders() == [order]
+      order = order_fixture(%{customer_id: customer.id}) |> PeekPoc.Repo.preload(:payments)
+      assert Organizations.list_orders() == [%{order | current_balance: 0}]
     end
 
     test "get_order!/1 returns the order with given id" do
       customer = customer_fixture()
       order = order_fixture(%{customer_id: customer.id})
-      assert Organizations.get_order!(order.id) == order
+      assert Organizations.get_order!(order.id) == %{order | current_balance: 0}
     end
 
     test "get_order/1 returns the order with given id" do
       customer = customer_fixture()
       order = order_fixture(%{customer_id: customer.id})
-      assert Organizations.get_order!(order.id) == order
+      assert Organizations.get_order!(order.id) == %{order | current_balance: 0}
     end
 
     test "get_orders_for_customer/1 returns all orders for a given email" do
       customer = customer_fixture()
-      order = order_fixture(%{customer_id: customer.id}) |> PeekPoc.Repo.preload(:payments)
+      order = order_fixture(%{customer_id: customer.id})
       assert Organizations.get_orders_for_customer(customer.email) == [order]
     end
 
@@ -123,7 +123,7 @@ defmodule PeekPoc.OrganizationsTest do
       customer = customer_fixture()
       order = order_fixture(%{customer_id: customer.id})
       assert {:error, %Ecto.Changeset{}} = Organizations.update_order(order, @invalid_attrs)
-      assert order == Organizations.get_order!(order.id)
+      assert %{order | current_balance: 0} == Organizations.get_order!(order.id)
     end
 
     test "delete_order/1 deletes the order" do
@@ -205,5 +205,9 @@ defmodule PeekPoc.OrganizationsTest do
       payment = payment_fixture()
       assert %Ecto.Changeset{} = Organizations.change_payment(payment)
     end
+  end
+
+  describe "apply_payments_to_order" do
+    import PeekPoc.OrganizationsFixtures
   end
 end

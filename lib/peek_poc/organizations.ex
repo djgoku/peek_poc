@@ -114,7 +114,7 @@ defmodule PeekPoc.Organizations do
 
   """
   def list_orders do
-    Repo.all(Order)
+    Repo.all(Order) |> Enum.map(&add_order_current_balance/1)
   end
 
   @doc """
@@ -131,7 +131,7 @@ defmodule PeekPoc.Organizations do
       ** (Ecto.NoResultsError)
 
   """
-  def get_order!(id), do: Repo.get!(Order, id)
+  def get_order!(id), do: Repo.get!(Order, id) |> add_order_current_balance()
 
   @doc """
   Gets a single order.
@@ -335,5 +335,15 @@ defmodule PeekPoc.Organizations do
   """
   def change_payment(%Payment{} = payment, attrs \\ %{}) do
     Payment.changeset(payment, attrs)
+  end
+
+  def add_order_current_balance(%Order{} = order) do
+    order = order |> Repo.preload(:payments)
+
+    current_balance =
+      order.payments
+      |> Enum.reduce(0, fn payment, acc -> payment.amount + acc end)
+
+    %{order | current_balance: current_balance}
   end
 end

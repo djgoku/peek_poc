@@ -7,6 +7,7 @@ defmodule PeekPoc.Organizations.Order do
 
   schema "orders" do
     field(:original_cost, :integer)
+    field(:current_balance, :integer, virtual: true)
     belongs_to(:customer, Customer)
     has_many(:payments, Payment)
 
