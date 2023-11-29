@@ -257,6 +257,40 @@ defmodule PeekPoc.Organizations do
   end
 
   @doc """
+  Add a payment to an existing order.
+
+  Raises `Ecto.NoResultsError` if the Payment does not exist.
+
+  ## Examples
+
+      iex> apply_payment_to_order(%Order{}, "client-identifier", 1)
+      {:ok, :payment_made}
+
+      iex> apply_payment_to_order(%Order{}, "client-identifier", 1)
+      {:error, :hmm}
+
+  """
+  def apply_payment_to_order(order, payment_identifier, payment_amount) do
+    order = add_order_current_balance(order) |> Repo.preload(:customer)
+
+    # TODO we can do this better
+    case order do
+      o when o.current_balance + payment_amount <= o.original_cost ->
+        case create_payment(%{
+               order_id: order.id,
+               client_identifier: payment_identifier,
+               amount: payment_amount
+             }) do
+          {:ok, %Payment{}} -> {:ok, :payment_made}
+          error -> error
+        end
+
+      o when o.current_balance + payment_amount > o.original_cost ->
+        {:ok, :order_already_paid_in_full}
+    end
+  end
+
+  @doc """
   Gets a single payment.
 
   Raises `Ecto.NoResultsError` if the Payment does not exist.

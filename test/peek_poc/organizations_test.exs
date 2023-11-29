@@ -219,5 +219,35 @@ defmodule PeekPoc.OrganizationsTest do
 
   describe "apply_payments_to_order" do
     import PeekPoc.OrganizationsFixtures
+
+    test "apply_payment_to_order/3 successful pay an order" do
+      customer = customer_fixture()
+      order = order_fixture(%{customer_id: customer.id})
+
+      assert {:ok, :payment_made} = Organizations.apply_payment_to_order(order, "payment-1", 10)
+
+      order = Organizations.get_order(order.id)
+      assert order.current_balance == 10
+      assert Enum.count(order.payments) == 1
+
+      assert {:ok, :payment_made} = Organizations.apply_payment_to_order(order, "payment-2", 10)
+      order = Organizations.get_order(order.id)
+      assert order.current_balance == 20
+      assert Enum.count(order.payments) == 2
+
+      Organizations.apply_payment_to_order(order, "payment-2", 10)
+
+      assert {:ok, :payment_made} = Organizations.apply_payment_to_order(order, "payment-3", 22)
+      order = Organizations.get_order(order.id)
+      assert order.current_balance == 42
+      assert Enum.count(order.payments) == 3
+
+      assert {:ok, :order_already_paid_in_full} =
+               Organizations.apply_payment_to_order(order, "payment-4", 1)
+
+      order = Organizations.get_order(order.id)
+      assert order.current_balance == 42
+      assert Enum.count(order.payments) == 3
+    end
   end
 end
