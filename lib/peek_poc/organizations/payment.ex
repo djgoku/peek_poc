@@ -15,8 +15,7 @@ defmodule PeekPoc.Organizations.Payment do
   @doc false
   def changeset(payment, attrs) do
     payment
-    |> cast(attrs, [:amount, :client_identifier])
-    |> cast_assoc(:order)
-    |> validate_required([:amount, :client_identifier])
+    |> cast(attrs, [:amount, :client_identifier, :order_id])
+    |> validate_required([:amount, :client_identifier, :order_id])
   end
 end

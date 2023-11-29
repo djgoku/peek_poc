@@ -13,6 +13,12 @@ defmodule PeekPoc.OrganizationsTest do
     |> Map.take([:id, :customer_id, :original_cost])
   end
 
+  defp create_payment_with_order(order) do
+    import PeekPoc.OrganizationsFixtures
+
+    payment_fixture(%{order_id: order.id})
+  end
+
   describe "customers" do
     alias PeekPoc.Organizations.Customer
 
@@ -149,21 +155,24 @@ defmodule PeekPoc.OrganizationsTest do
 
     test "list_payments/0 returns all payments" do
       order = create_order()
-      payment = payment_fixture(%{order: order})
-      assert Organizations.list_payments() == [payment]
+      payment = create_payment_with_order(order)
+      [payment] = Organizations.list_payments()
+      assert order.id == payment.order_id
     end
 
     test "get_payment!/1 returns the payment with given id" do
-      payment = payment_fixture()
+      payment = create_order() |> create_payment_with_order()
       assert Organizations.get_payment!(payment.id) == payment
     end
 
     test "create_payment/1 with valid data creates a payment" do
-      valid_attrs = %{amount: 42, client_identifier: "some client_identifier"}
+      order = create_order()
+      valid_attrs = %{amount: 42, client_identifier: "some client_identifier", order_id: order.id}
 
       assert {:ok, %Payment{} = payment} = Organizations.create_payment(valid_attrs)
       assert payment.amount == 42
       assert payment.client_identifier == "some client_identifier"
+      assert order.id == payment.order_id
     end
 
     test "create_payment/1 when an existing payment has the same client_identifier does not create a payment" do
@@ -181,7 +190,7 @@ defmodule PeekPoc.OrganizationsTest do
     end
 
     test "update_payment/2 with valid data updates the payment" do
-      payment = payment_fixture()
+      payment = create_order() |> create_payment_with_order()
       update_attrs = %{amount: 43, client_identifier: "some updated client_identifier"}
 
       assert {:ok, %Payment{} = payment} = Organizations.update_payment(payment, update_attrs)
@@ -190,19 +199,20 @@ defmodule PeekPoc.OrganizationsTest do
     end
 
     test "update_payment/2 with invalid data returns error changeset" do
-      payment = payment_fixture()
+      payment = create_order() |> create_payment_with_order()
       assert {:error, %Ecto.Changeset{}} = Organizations.update_payment(payment, @invalid_attrs)
       assert payment == Organizations.get_payment!(payment.id)
     end
 
     test "delete_payment/1 deletes the payment" do
-      payment = payment_fixture()
+      order = create_order()
+      payment = create_payment_with_order(order)
       assert {:ok, %Payment{}} = Organizations.delete_payment(payment)
       assert_raise Ecto.NoResultsError, fn -> Organizations.get_payment!(payment.id) end
     end
 
     test "change_payment/1 returns a payment changeset" do
-      payment = payment_fixture()
+      payment = create_order() |> create_payment_with_order()
       assert %Ecto.Changeset{} = Organizations.change_payment(payment)
     end
   end
