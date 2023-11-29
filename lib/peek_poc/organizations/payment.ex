@@ -17,5 +17,6 @@ defmodule PeekPoc.Organizations.Payment do
     payment
     |> cast(attrs, [:amount, :client_identifier, :order_id])
     |> validate_required([:amount, :client_identifier, :order_id])
+    |> unique_constraint([:order_id, :client_identifier])
   end
 end
