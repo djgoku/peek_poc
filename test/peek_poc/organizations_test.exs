@@ -250,4 +250,23 @@ defmodule PeekPoc.OrganizationsTest do
       assert Enum.count(order.payments) == 3
     end
   end
+
+  describe "create_order_and_pay" do
+    import PeekPoc.OrganizationsFixtures
+
+    test "create_order_and_pay/3 happy path" do
+      customer = customer_fixture()
+
+      assert {:ok, %{order: order, payment: payment}} =
+               Organizations.create_order_and_pay(customer, %{original_cost: 30}, %{
+                 amount: 30,
+                 client_identifier: "payment-1"
+               })
+
+      assert order.original_cost == 30
+      assert order.customer_id == customer.id
+      assert payment.client_identifier == "payment-1"
+      assert payment.amount == 30
+    end
+  end
 end

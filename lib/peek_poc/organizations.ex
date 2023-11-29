@@ -5,6 +5,7 @@ defmodule PeekPoc.Organizations do
 
   import Ecto.Query, warn: false
   alias PeekPoc.Repo
+  alias Ecto.Multi
 
   alias PeekPoc.Organizations.Customer
 
@@ -379,5 +380,25 @@ defmodule PeekPoc.Organizations do
       |> Enum.reduce(0, fn payment, acc -> payment.amount + acc end)
 
     %{order | current_balance: current_balance}
+  end
+
+  def create_order_and_pay(
+        %Customer{} =
+          customer,
+        order_params,
+        payment_params
+      ),
+      do: create_order_and_pay(customer |> Map.from_struct(), order_params, payment_params)
+
+  def create_order_and_pay(customer, order_params, payment_params) do
+    order_params = Map.put(order_params, :customer_id, customer.id)
+
+    Multi.new()
+    |> Multi.insert(:order, Order.changeset(%Order{}, order_params))
+    |> Multi.insert(:payment, fn %{order: order} ->
+      payment_params = Map.put(payment_params, :order_id, order.id)
+      Payment.changeset(%Payment{}, payment_params)
+    end)
+    |> PeekPoc.Repo.transaction()
   end
 end
